@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Ads Analyzer — Gerador de Prompt</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--text:#f0efe8;--text2:#9a9890;--text3:#5a5856;--accent:#1D9E75;--accent2:#15704f;--blue:#378ADD;--blue2:#185FA5;--radius:10px;--radius-sm:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;line-height:1.6}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(29,158,117,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(29,158,117,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.page{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+.header{margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--border);position:relative}
+.header::after{content:'';position:absolute;bottom:-1px;left:0;width:80px;height:2px;background:var(--accent)}
+.logo-row{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent)}
+.header h1{font-size:clamp(26px,5vw,38px);font-weight:800;line-height:1.15;color:var(--text);margin-bottom:10px}
+.header h1 span{color:var(--accent)}
+.header p{font-size:15px;color:var(--text2);max-width:540px}
+.progress-wrap{margin-bottom:2rem}
+.progress-steps{display:flex;gap:6px;margin-bottom:10px}
+.ps{height:3px;flex:1;background:var(--border2);border-radius:2px;transition:background 0.3s}
+.ps.done{background:var(--accent)}.ps.active{background:var(--blue)}
+.progress-info{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text3)}
+.progress-info strong{color:var(--text2)}
+.section{display:none}.section.active{display:block}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+.section-num{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0}
+.section-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text2)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;transition:border-color 0.2s}
+.card:focus-within{border-color:var(--border2)}
+.field-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag-req{font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;background:rgba(226,75,74,0.15);color:#f08080;border:1px solid rgba(226,75,74,0.25);border-radius:4px;padding:2px 7px}
+.tag-opt{font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;background:rgba(255,255,255,0.05);color:var(--text3);border:1px solid var(--border);border-radius:4px;padding:2px 7px}
+.field-hint{font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5}
+textarea,input[type="text"],select{width:100%;font-family:'Syne',sans-serif;font-size:13px;color:var(--text);background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;resize:vertical;line-height:1.6;transition:border-color 0.2s;-webkit-appearance:none}
+textarea::placeholder,input::placeholder{color:var(--text3)}
+textarea:focus,input[type="text"]:focus,select:focus{outline:none;border-color:var(--blue)}
+select{cursor:pointer}
+select option{background:var(--bg3)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:540px){.grid-2{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.chip{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s;user-select:none}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.selected{background:rgba(29,158,117,0.15);border-color:var(--accent);color:#5DCAA5;font-weight:700}
+.info-box{background:rgba(55,138,221,0.08);border:1px solid rgba(55,138,221,0.2);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:#85B7EB;line-height:1.5;margin-bottom:1rem}
+.warning-box{background:rgba(239,159,39,0.08);border:1px solid rgba(239,159,39,0.2);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:#FAC775;line-height:1.5;margin-bottom:1rem}
+.nav{display:flex;align-items:center;justify-content:space-between;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);gap:10px}
+.btn{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2);transition:all 0.15s}
+.btn:hover{background:var(--bg3);color:var(--text)}.btn:active{transform:scale(0.98)}
+.btn-next{background:var(--blue2);border-color:var(--blue2);color:#fff;padding:10px 24px}
+.btn-next:hover{background:#0C447C;border-color:#0C447C;color:#fff}
+.btn-generate{background:var(--accent);border-color:var(--accent);color:#fff;font-size:14px;padding:11px 28px}
+.btn-generate:hover{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.output-section{display:none}.output-section.active{display:block}
+.output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.output-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text2)}
+.btn-copy{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;padding:7px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-copy:hover{background:var(--bg3);color:var(--text)}.btn-copy.copied{border-color:var(--accent);color:var(--accent)}
+.output-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.8;color:var(--text2);white-space:pre-wrap;word-break:break-word;max-height:500px;overflow-y:auto}
+.output-box::-webkit-scrollbar{width:6px}.output-box::-webkit-scrollbar-track{background:transparent}.output-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.reset-link{display:inline-block;margin-top:1.5rem;font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color 0.15s}
+.reset-link:hover{color:var(--text2)}
+.howto{margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border)}
+.howto h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:1rem}
+.howto-steps{display:flex;flex-direction:column;gap:10px}
+.howto-step{display:flex;align-items:flex-start;gap:12px;font-size:13px;color:var(--text2)}
+.howto-num{width:22px;height:22px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;margin-top:1px}
+.footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:12px;color:var(--text3);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-icon">&#9889;</div>
+      <span class="logo-text">Google Ads Analyzer</span>
+    </div>
+    <h1>Gerador de Prompt<br><span>para Análise de Campanha</span></h1>
+    <p>Preencha as informações da sua campanha passo a passo. O prompt otimizado para análise profunda será gerado automaticamente.</p>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-steps" id="progressBar"></div>
+    <div class="progress-info">
+      <span>Etapa <strong id="stepLabel">1</strong> de <strong>5</strong> — <strong id="stepName">Contexto da Oferta</strong></span>
+      <span id="pctLabel">0% completo</span>
+    </div>
+  </div>
+  <div class="section active" id="step1">
+    <div class="section-header"><div class="section-num">1</div><div class="section-title">Contexto da Oferta e Funil</div></div>
+    <div class="card">
+      <div class="field-label">O que você está vendendo? <span class="tag-req">obrigatório</span></div>
+      <div class="field-hint">Descreva o produto/serviço e a ação que você quer que o usuário tome ao chegar na LP.</div>
+      <textarea id="produto" rows="3" placeholder="Ex: suplemento para perda de peso, afiliado via CPA. O usuário deve preencher um formulário para receber uma amostra grátis."></textarea>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="field-label">Modelo de negócio <span class="tag-req">obrigatório</span></div>
+        <div class="field-hint">Qual é a sua estrutura de conversão?</div>
+        <select id="modelo"><option value="">Selecione...</option><option>CPA Afiliado</option><option>E-commerce direto</option><option>Geração de leads</option><option>Infoproduto</option><option>SaaS / Assinatura</option><option>Serviço local</option><option>Outro</option></select>
+      </div>
+      <div class="card">
+        <div class="field-label">O que é rastreado como conversão? <span class="tag-req">obrigatório</span></div>
+        <div class="field-hint">Qual evento o Google Ads considera conversão?</div>
+        <select id="conversao"><option value="">Selecione...</option><option>Compra real (transação)</option><option>Envio de formulário</option><option>Chegada na página de obrigado</option><option>Clique em botão/CTA</option><option>Ligação telefônica</option><option>Evento personalizado</option></select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="field-label">O que acontece depois do clique no anúncio? <span class="tag-req">obrigatório</span></div>
+      <div class="field-hint">Descreva o funil completo: LP → próximos passos → conversão final.</div>
+      <textarea id="funil" rows="2" placeholder="Ex: usuário vai para a LP → clica em CTA → vai para checkout do afiliado → compra. Rastreio só até o clique no CTA."></textarea>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="field-label">Preço / Ticket <span class="tag-opt">opcional</span></div><input type="text" id="preco" placeholder="Ex: $47, R$297, grátis + frete..."></div>
+      <div class="card"><div class="field-label">Meta de CPA ou ROAS <span class="tag-opt">opcional</span></div><input type="text" id="meta" placeholder="Ex: CPA máx $15, ROAS 3x..."></div>
+    </div>
+  </div>
+  <div class="section" id="step2">
+    <div class="section-header"><div class="section-num">2</div><div class="section-title">Dados da Campanha</div></div>
+    <div class="info-box">Cole os dados do seu painel do Google Ads. Quanto mais dados você fornecer, mais precisa e cirúrgica será a análise.</div>
+    <div class="card">
+      <div class="field-label">Métricas gerais da campanha <span class="tag-req">obrigatório</span></div>
+      <div class="field-hint">Impressões, cliques, CTR, CPC médio, custo total, conversões, taxa de conversão, CPA — e o período analisado.</div>
+      <textarea id="metricas" rows="6" placeholder="Período: últimos 30 dias&#10;Impressões: 48.230&#10;Cliques: 1.204&#10;CTR: 2,49%&#10;CPC médio: $0,87&#10;Custo total: $1.047&#10;Conversões: 12&#10;Taxa de conversão: 1,0%&#10;CPA: $87&#10;Estratégia de lance: CPA alvo ($15)&#10;Orçamento diário: $40"></textarea>
+    </div>
+    <div class="card">
+      <div class="field-label">Termos de pesquisa (Search Terms Report) <span class="tag-req">obrigatório</span></div>
+      <div class="field-hint">Liste os principais termos reais que ativaram seus anúncios, com cliques e conversões se possível.</div>
+      <textarea id="searchterms" rows="6" placeholder="buy weight loss pills — 87 cliques, 2 conv&#10;best diet supplement 2024 — 54 cliques, 1 conv&#10;how to lose belly fat fast — 112 cliques, 0 conv&#10;cheap slimming pills — 33 cliques, 0 conv"></textarea>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="field-label">Palavras-chave ativas <span class="tag-req">obrigatório</span></div>
+        <div class="field-hint">Keywords com tipo de correspondência, cliques e conversões.</div>
+        <textarea id="keywords" rows="5" placeholder="[exata] buy weight loss pills — 45c, 1cv&#10;[frase] weight loss supplement — 120c, 3cv&#10;[ampla] lose weight fast — 280c, 0cv"></textarea>
+      </div>
+      <div class="card">
+        <div class="field-label">Palavras-chave negativas <span class="tag-opt">opcional</span></div>
+        <div class="field-hint">Negativas já configuradas na campanha.</div>
+        <textarea id="negativas" rows="5" placeholder="free&#10;recipe&#10;exercise&#10;workout&#10;diy"></textarea>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="field-label">GEO alvo <span class="tag-req">obrigatório</span></div><input type="text" id="geo" placeholder="Ex: Estados Unidos, UK, Alemanha..."></div>
+      <div class="card"><div class="field-label">Dispositivos <span class="tag-opt">opcional</span></div><input type="text" id="dispositivos" placeholder="Ex: Mobile 78%, Desktop 19%, Tablet 3%"></div>
+    </div>
+  </div>
+  <div class="section" id="step3">
+    <div class="section-header"><div class="section-num">3</div><div class="section-title">Anúncios e Assets</div></div>
+    <div class="card">
+      <div class="field-label">Texto dos anúncios ativos (RSA) <span class="tag-req">obrigatório</span></div>
+      <div class="field-hint">Cole as headlines e descriptions de cada anúncio. Indique se alguma headline está pinada e o CTR/performance.</div>
+      <textarea id="anuncios" rows="8" placeholder="Anúncio 1:&#10;Headlines: Lose Weight Fast | #1 Diet Supplement | Try Risk Free Today&#10;Descriptions: Clinically proven formula. Join 200k+ customers. | No risk 60-day guarantee.&#10;CTR: 3,1% | Performance: Good&#10;&#10;Anúncio 2:&#10;Headlines: [PINADO] Weight Loss Pills | Fast Delivery USA&#10;CTR: 1,8% | Performance: Low"></textarea>
+    </div>
+    <div class="card">
+      <div class="field-label">Assets / Extensões ativas <span class="tag-opt">opcional</span></div>
+      <textarea id="assets" rows="3" placeholder="Sitelinks: Shop Now, Free Shipping, Reviews, FAQ&#10;Callouts: 60-Day Guarantee, FDA Facility, No Subscription"></textarea>
+    </div>
+    <div class="card">
+      <div class="field-label">Estrutura de grupos de anúncios <span class="tag-opt">opcional</span></div>
+      <textarea id="estrutura" rows="4" placeholder="Grupo 1: Brand — 2 keywords&#10;Grupo 2: Concorrentes — 5 keywords&#10;Grupo 3: Genérico (weight loss) — 8 keywords&#10;Grupo 4: Problema (belly fat) — 4 keywords"></textarea>
+    </div>
+  </div>
+  <div class="section" id="step4">
+    <div class="section-header"><div class="section-num">4</div><div class="section-title">Landing Page</div></div>
+    <div class="card"><div class="field-label">URL da landing page <span class="tag-req">obrigatório</span></div><input type="text" id="lpurl" placeholder="https://..."></div>
+    <div class="card"><div class="field-label">Headline principal da LP <span class="tag-req">obrigatório</span></div><input type="text" id="lpheadline" placeholder="Ex: Burn Fat 3x Faster — Without Starving Yourself"></div>
+    <div class="card">
+      <div class="field-label">Descrição do conteúdo da página <span class="tag-req">obrigatório</span></div>
+      <div class="field-hint">O que aparece above the fold, qual é o CTA, prova social, formulário, etc.</div>
+      <textarea id="lpdesc" rows="5" placeholder="- Acima da dobra: headline + imagem + CTA 'Get My Free Bottle'&#10;- Seção de benefícios com 3 ícones&#10;- Depoimentos (3 reviews com foto)&#10;- Selos de confiança (FDA, SSL, Money Back)&#10;- CTA final repetido"></textarea>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="field-label">Taxa de conversão da LP <span class="tag-opt">opcional</span></div><input type="text" id="lpcvr" placeholder="Ex: 1,8% — ou 'não sei'"></div>
+      <div class="card"><div class="field-label">Velocidade / mobile <span class="tag-opt">opcional</span></div><input type="text" id="lpspeed" placeholder="Ex: PageSpeed mobile 48..."></div>
+    </div>
+    <div class="card">
+      <div class="field-label">Pontos de fricção suspeitos <span class="tag-opt">opcional</span></div>
+      <textarea id="lpfricao" rows="2" placeholder="Ex: formulário pede muitos campos, página lenta no mobile, CTA não visível sem rolar..."></textarea>
+    </div>
+  </div>
+  <div class="section" id="step5">
+    <div class="section-header"><div class="section-num">5</div><div class="section-title">Foco da Análise e Prioridades</div></div>
+    <div class="card">
+      <div class="field-label">Principal problema que você já percebe <span class="tag-opt">opcional</span></div>
+      <textarea id="problema" rows="2" placeholder="Ex: gasto alto com zero conversões nos últimos 7 dias, CTR caiu pela metade depois de mudar o lance..."></textarea>
+    </div>
+    <div class="card">
+      <div class="field-label">O que você quer priorizar nessa análise?</div>
+      <div class="field-hint">Selecione um ou mais focos.</div>
+      <div class="chips" id="focosChips">
+        <div class="chip selected" data-val="Diagnóstico completo (tudo)">Diagnóstico completo</div>
+        <div class="chip" data-val="Desperdício de verba">Desperdício de verba</div>
+        <div class="chip" data-val="Qualidade das keywords e termos de pesquisa">Keywords e termos</div>
+        <div class="chip" data-val="Otimização dos anúncios e copy">Otimização dos anúncios</div>
+        <div class="chip" data-val="Melhoria da landing page e CRO">Landing page / CRO</div>
+        <div class="chip" data-val="Estratégia de lance (bidding)">Bidding</div>
+        <div class="chip" data-val="Como escalar a campanha com menor risco">Escalar campanha</div>
+        <div class="chip" data-val="Novas mensagens e ângulos de copy">Copy e mensagem</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="field-label">Modo da análise <span class="tag-req">obrigatório</span></div>
+      <div class="chips" id="modoChips">
+        <div class="chip" data-val="RODADA 1 — DIAGNÓSTICO APENAS: Analise tráfego, intenção, keywords, termos, anúncios, LP, oferta, conversão, estrutura e bidding. Identifique gargalos, desperdícios e congruência do funil. Não gere plano de ação ainda — aguarde minha validação.">Rodada 1 — só diagnóstico</div>
+        <div class="chip selected" data-val="ANÁLISE COMPLETA em única resposta: diagnóstico de todas as camadas, gargalos, desperdícios, congruência, melhorias prioritárias, testes sugeridos, copy, LP e o que manter.">Análise completa</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="field-label">Restrição de resposta</div>
+      <div class="chips" id="restricaoChips">
+        <div class="chip selected" data-val="Me dê no máximo 3 ações de alto impacto para executar essa semana, e o restante como backlog priorizado por impacto no CPA.">Top 3 ações + backlog</div>
+        <div class="chip" data-val="Liste todas as melhorias priorizadas por impacto no CPA, sem limitar quantidade.">Listar tudo sem limite</div>
+        <div class="chip" data-val="Foque apenas no gargalo principal. Me dê 1 problema central e como resolvê-lo primeiro.">Só o gargalo principal</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="field-label">Contexto adicional <span class="tag-opt">opcional</span></div>
+      <textarea id="adicional" rows="2" placeholder="Ex: já rodei essa campanha por 3 meses, CPA era $12 e subiu para $87 depois de mudar a LP..."></textarea>
+    </div>
+  </div>
+  <div class="output-section" id="outputSection">
+    <div class="section-header">
+      <div class="section-num" style="background:rgba(29,158,117,0.15);border-color:var(--accent);color:var(--accent)">&#10003;</div>
+      <div class="section-title">Prompt gerado — pronto para usar</div>
+    </div>
+    <div class="warning-box">Revise o prompt abaixo antes de copiar. Campos não preenchidos foram omitidos automaticamente.</div>
+    <div class="output-header">
+      <span class="output-label">Prompt completo</span>
+      <button class="btn-copy" id="copyBtn" onclick="copyPrompt()">Copiar tudo</button>
+    </div>
+    <div class="output-box" id="outputBox"></div>
+    <div style="margin-top:1rem;padding:1rem;background:rgba(29,158,117,0.06);border:1px solid rgba(29,158,117,0.15);border-radius:var(--radius);font-size:13px;color:#5DCAA5;line-height:1.6">
+      <strong>Como usar:</strong> Copie o prompt acima → Abra o Claude.ai → Cole no chat e envie.
+    </div>
+    <span class="reset-link" onclick="resetForm()">← Preencher nova campanha</span>
+  </div>
+  <div class="nav" id="navBar">
+    <button class="btn" id="btnBack" onclick="goBack()" style="visibility:hidden">← Voltar</button>
+    <button class="btn btn-next" id="btnNext" onclick="goNext()">Próximo →</button>
+  </div>
+  <div class="howto">
+    <h3>Como funciona</h3>
+    <div class="howto-steps">
+      <div class="howto-step"><div class="howto-num">1</div><span>Preencha as 5 etapas com os dados reais da sua campanha</span></div>
+      <div class="howto-step"><div class="howto-num">2</div><span>Clique em <strong style="color:var(--text)">Gerar Prompt</strong> — o prompt otimizado é montado automaticamente</span></div>
+      <div class="howto-step"><div class="howto-num">3</div><span>Copie e cole no <strong style="color:var(--text)">Claude.ai</strong> para receber a análise profissional</span></div>
+      <div class="howto-step"><div class="howto-num">4</div><span>Quanto mais dados você fornecer, mais precisa e acionável será a análise</span></div>
+    </div>
+  </div>
+  <div class="footer">
+    <span>Google Ads Campaign Analyzer</span>
+    <span>Use com Claude.ai para análise profunda</span>
+  </div>
+</div>
+<script>
+const TOTAL=5,stepNames=['Contexto da Oferta','Dados da Campanha','Anúncios e Assets','Landing Page','Foco e Prioridades'];
+let step=1;
+function renderProgress(){
+  const bar=document.getElementById('progressBar');
+  bar.innerHTML='';
+  for(let i=1;i<=TOTAL;i++){const d=document.createElement('div');d.className='ps'+(i<step?' done':i===step?' active':'');bar.appendChild(d);}
+  document.getElementById('stepLabel').textContent=step;
+  document.getElementById('stepName').textContent=step<=TOTAL?stepNames[step-1]:'Concluído';
+  document.getElementById('pctLabel').textContent=Math.round(((step-1)/TOTAL)*100)+'% completo';
+  document.getElementById('btnBack').style.visibility=step>1?'visible':'hidden';
+  const next=document.getElementById('btnNext');
+  if(step===TOTAL){next.textContent='Gerar Prompt ↗';next.className='btn btn-generate';}
+  else{next.textContent='Próximo →';next.className='btn btn-next';}
+}
+function showStep(n){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('outputSection').classList.remove('active');
+  if(n>TOTAL){
+    buildPrompt();
+    document.getElementById('outputSection').classList.add('active');
+    document.getElementById('navBar').style.display='none';
+    document.getElementById('progressBar').innerHTML=Array(TOTAL).fill('<div class="ps done"></div>').join('');
+    document.getElementById('stepLabel').textContent=TOTAL;
+    document.getElementById('stepName').textContent='Concluído';
+    document.getElementById('pctLabel').textContent='100% completo';
+  }else{
+    document.getElementById('step'+n).classList.add('active');
+    document.getElementById('navBar').style.display='flex';
+    renderProgress();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+function goNext(){step++;showStep(step);}
+function goBack(){if(step>1){step--;showStep(step);}}
+function resetForm(){
+  step=1;
+  document.querySelectorAll('textarea,input[type="text"]').forEach(el=>el.value='');
+  document.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));
+  document.querySelector('#focosChips .chip').classList.add('selected');
+  document.querySelectorAll('#modoChips .chip')[1].classList.add('selected');
+  document.querySelectorAll('#restricaoChips .chip')[0].classList.add('selected');
+  showStep(1);
+}
+document.querySelectorAll('.chips').forEach(group=>{
+  const multi=group.id==='focosChips';
+  group.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      if(multi){chip.classList.toggle('selected');}
+      else{group.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));chip.classList.add('selected');}
+    });
+  });
+});
+function v(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function chips(id){return Array.from(document.querySelectorAll('#'+id+' .chip.selected')).map(c=>c.dataset.val).join(', ');}
+function buildPrompt(){
+  const focos=chips('focosChips'),modo=chips('modoChips'),restricao=chips('restricaoChips');
+  let p='Você é meu estrategista sênior de Google Ads, especialista em campanhas de resposta direta, CPA, CRO e otimização de funil.\n\nAnalise minha campanha como um operador de performance obcecado por conversão, qualidade do tráfego e lucratividade. Pense como um sistema: oferta, público, intenção de busca, keywords, anúncios, landing page, funil, métricas e bidding.\n\n';
+  p+='━━━ REGRAS DA SUA RESPOSTA ━━━\n';
+  p+='• Sem conselho genérico. Sem vagueza. Sem otimismo sem evidência.\n';
+  p+='• Seja direto. Mostre lógica de performance. Priorize impacto real.\n';
+  p+='• Quando levantar hipótese, diga em qual sinal ou dado você se baseia.\n';
+  p+='• Separe claramente: PROBLEMA CONFIRMADO vs HIPÓTESE PROVÁVEL.\n';
+  if(restricao)p+='• '+restricao+'\n';
+  p+='\n';
+  if(modo)p+='MODO DE ANÁLISE: '+modo+'\n';
+  if(focos)p+='FOCOS PRIORITÁRIOS: '+focos+'\n';
+  p+='\n━━━ 1. CONTEXTO DA OFERTA E FUNIL ━━━\n\n';
+  if(v('produto'))p+='Produto/Oferta: '+v('produto')+'\n';
+  if(v('modelo'))p+='Modelo de negócio: '+v('modelo')+'\n';
+  if(v('conversao'))p+='Evento rastreado como conversão: '+v('conversao')+'\n';
+  if(v('funil'))p+='Funil após o clique: '+v('funil')+'\n';
+  if(v('preco'))p+='Preço/Ticket: '+v('preco')+'\n';
+  if(v('meta'))p+='Meta de CPA/ROAS: '+v('meta')+'\n';
+  p+='\n━━━ 2. DADOS DA CAMPANHA ━━━\n\n';
+  if(v('metricas'))p+='Métricas gerais:\n'+v('metricas')+'\n\n';
+  if(v('geo'))p+='GEO alvo: '+v('geo')+'\n';
+  if(v('dispositivos'))p+='Dispositivos: '+v('dispositivos')+'\n';
+  if(v('keywords'))p+='\nPalavras-chave ativas:\n'+v('keywords')+'\n';
+  if(v('negativas'))p+='\nPalavras-chave negativas:\n'+v('negativas')+'\n';
+  if(v('searchterms'))p+='\nTermos de pesquisa:\n'+v('searchterms')+'\n';
+  p+='\n━━━ 3. ANÚNCIOS E ASSETS ━━━\n\n';
+  if(v('anuncios'))p+='Anúncios ativos:\n'+v('anuncios')+'\n\n';
+  if(v('assets'))p+='Assets/Extensões:\n'+v('assets')+'\n\n';
+  if(v('estrutura'))p+='Estrutura de grupos:\n'+v('estrutura')+'\n';
+  p+='\n━━━ 4. LANDING PAGE ━━━\n\n';
+  if(v('lpurl'))p+='URL: '+v('lpurl')+'\n';
+  if(v('lpheadline'))p+='Headline principal: '+v('lpheadline')+'\n';
+  if(v('lpdesc'))p+='Conteúdo da página:\n'+v('lpdesc')+'\n';
+  if(v('lpcvr'))p+='Taxa de conversão da LP: '+v('lpcvr')+'\n';
+  if(v('lpspeed'))p+='Velocidade/mobile: '+v('lpspeed')+'\n';
+  if(v('lpfricao'))p+='Fricções suspeitas: '+v('lpfricao')+'\n';
+  if(v('problema')||v('adicional')){
+    p+='\n━━━ 5. CONTEXTO ADICIONAL ━━━\n\n';
+    if(v('problema'))p+='Principal problema percebido: '+v('problema')+'\n';
+    if(v('adicional'))p+='Outras informações relevantes: '+v('adicional')+'\n';
+  }
+  p+='\n━━━ FORMATO OBRIGATÓRIO DA RESPOSTA ━━━\n\nResponda exatamente nesta estrutura:\n\n1. RESUMO EXECUTIVO\n   → Visão geral da campanha + onde ela trava mais\n\n2. GARGALO PRINCIPAL\n   → Maior problema hoje + por que é o gargalo\n\n3. DIAGNÓSTICO POR CAMADA\n   → Tráfego / Intenção / Keywords / Termos / Anúncios / LP / Oferta / Conversão / Estrutura / Bidding\n\n4. DESPERDÍCIOS DE VERBA\n   → Onde há perda provável + o que cortar, negativar, pausar ou ajustar\n\n5. CONGRUÊNCIA DO FUNIL\n   → Keyword → Anúncio → LP: onde há quebra de expectativa\n\n6. MELHORIAS PRIORITÁRIAS\n   → Em ordem de impacto no CPA\n\n7. NOVOS TESTES SUGERIDOS\n   → Anúncios, headlines, ângulos, LP, segmentação, negativas\n\n8. MELHORIAS DE COPY E MENSAGEM\n   → Novas headlines, descriptions, CTAs e propostas de valor\n\n9. MELHORIAS DE LANDING PAGE\n   → O que reescrever, mover, remover e adicionar\n\n10. O QUE MANTER\n    → O que parece funcionar e não deve ser alterado\n\n11. DADOS ADICIONAIS QUE FALTAM\n    → Quais informações aumentariam a precisão desta análise';
+  document.getElementById('outputBox').textContent=p;
+}
+function copyPrompt(){
+  const text=document.getElementById('outputBox').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='✓ Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copiar tudo';btn.classList.remove('copied');},2500);
+  }).catch(()=>{
+    const box=document.getElementById('outputBox');
+    const range=document.createRange();range.selectNodeContents(box);
+    window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+  });
+}
+renderProgress();
+</script>
+</body>
+</html>
